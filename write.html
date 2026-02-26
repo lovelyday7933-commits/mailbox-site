@@ -173,6 +173,19 @@
 
                 showToast(result.message);
 
+                // 텔레그램 알림 (비동기, 실패해도 무시)
+                fetch('/api/telegram-notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: result.data.id,
+                        content,
+                        category: selectedCategory,
+                        emoji: selectedEmoji,
+                        title: document.getElementById('title').value.trim() || null
+                    })
+                }).catch(() => {});
+
                 setTimeout(() => {
                     goTo(`/concern/${result.data.id}`);
                 }, 1000);
