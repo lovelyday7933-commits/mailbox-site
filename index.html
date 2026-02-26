@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>마음우체통 - 익명 고민상담 커뮤니티</title>
+    <meta name="description" content="익명으로 고민을 털어놓고 따뜻한 답장을 받아보세요">
+
+    <!-- Open Graph (카카오톡, 페이스북 등) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="마음우체통 - 익명 고민상담 커뮤니티">
+    <meta property="og:description" content="익명으로 고민을 털어놓고 따뜻한 답장을 받아보세요">
+    <meta property="og:url" content="https://allnewstartday.com/">
+    <meta property="og:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+    <meta property="og:site_name" content="마음우체통">
+    <meta property="og:locale" content="ko_KR">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="마음우체통 - 익명 고민상담 커뮤니티">
+    <meta name="twitter:description" content="익명으로 고민을 털어놓고 따뜻한 답장을 받아보세요">
+    <meta name="twitter:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+
+    <!-- 구글 애드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7162051930516598" crossorigin="anonymous"></script>
+
+    <!-- 네이버 웹마스터 -->
+    <meta name="naver-site-verification" content="4362a3747096e4d72fb71efdf8c0452ebbc8aeca" />
+
+    <!-- 카카오 애드핏 -->
+    <script async src="https://t1.daumcdn.net/kas/static/ba.min.js"></script>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+    <!-- 상단 광고 (구글 애드센스) -->
+    <div class="ad-container ad-top">
+        <div class="ad-slot">
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-7162051930516598"
+                data-ad-slot="AUTO"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 통계 배너 -->
+        <div class="stats-banner" id="stats-banner">
+            <div class="stat-item">
+                <div class="stat-value" id="stat-confessions">-</div>
+                <div class="stat-label">전달된 고민</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-replies">-</div>
+                <div class="stat-label">따뜻한 답장</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-rate">-</div>
+                <div class="stat-label">답장률</div>
+            </div>
+        </div>
+
+        <!-- 카테고리 탭 -->
+        <div class="category-tabs" id="category-tabs">
+            <button class="category-tab active" data-category="">전체</button>
+            <button class="category-tab" data-category="love">연애</button>
+            <button class="category-tab" data-category="work">직장/학교</button>
+            <button class="category-tab" data-category="family">가족</button>
+            <button class="category-tab" data-category="friend">친구</button>
+            <button class="category-tab" data-category="health">건강</button>
+        </div>
+
+        <!-- 필터 바 -->
+        <div class="filter-bar">
+            <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                <span id="total-count">0</span>개의 고민
+            </span>
+            <select class="sort-select" id="sort-select">
+                <option value="latest">최신순</option>
+                <option value="popular">인기순</option>
+                <option value="unanswered">답장 기다리는 중</option>
+            </select>
+        </div>
+
+        <!-- 고민 목록 -->
+        <div id="confession-list"></div>
+
+        <!-- 로딩 인디케이터 -->
+        <div id="loading-more" style="display: none;">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 광고 (카카오 애드핏) -->
+    <div class="ad-container ad-bottom">
+        <div class="ad-slot">
+            <ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-tTbs6kroYj3SnOoV" data-ad-width="320" data-ad-height="50"></ins>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">📮 마음우체통</div>
+            <div class="footer-links">
+                <a href="/">홈</a>
+                <a href="/play">심심풀이</a>
+                <a href="/popular">인기글</a>
+            </div>
+            <p class="footer-business">비즈니스 문의: <a href="mailto:Lovelyday2@kakao.com">Lovelyday2@kakao.com</a></p>
+            <p class="footer-copyright">&copy; 2024 마음우체통. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 작성 FAB -->
+    <a href="/write" class="fab" title="고민 쓰기">
+        ✏️
+    </a>
+
+    <script src="/js/supabase-client.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/header.js"></script>
+    <script>
+        // 상태
+        let currentPage = 1;
+        let currentCategory = '';
+        let currentSort = 'latest';
+        let isLoading = false;
+        let hasMore = true;
+
+        // 요소
+        const listEl = document.getElementById('confession-list');
+        const loadingMore = document.getElementById('loading-more');
+
+        // 고민 카드 렌더링
+        function renderConfessionCard(confession) {
+            const card = document.createElement('div');
+            card.className = 'card confession-card';
+            card.onclick = () => goTo(`/concern/${confession.id}`);
+
+            card.innerHTML = `
+                <div class="confession-header">
+                    <span class="confession-emoji">${confession.emoji || '💌'}</span>
+                    <span class="confession-category ${confession.category}">
+                        ${getCategoryLabel(confession.category)}
+                    </span>
+                    <span class="confession-time">${formatTime(confession.created_at)}</span>
+                </div>
+                <div class="confession-content">${truncate(confession.content, 150)}</div>
+                <div class="confession-footer">
+                    <span class="confession-stat">💬 ${confession.reply_count}</span>
+                    <span class="confession-stat">❤️ ${confession.like_count}</span>
+                    <span class="confession-stat">👁️ ${confession.view_count}</span>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 고민 목록 로드
+        async function loadConfessions(reset = false) {
+            if (isLoading || (!hasMore && !reset)) return;
+
+            isLoading = true;
+
+            if (reset) {
+                currentPage = 1;
+                hasMore = true;
+                listEl.innerHTML = '';
+            }
+
+            loadingMore.style.display = 'block';
+
+            try {
+                const params = {
+                    page: currentPage,
+                    per_page: 20,
+                    sort: currentSort,
+                };
+
+                if (currentCategory) {
+                    params.category = currentCategory;
+                }
+
+                const result = await confessionAPI.list(params);
+
+                document.getElementById('total-count').textContent = result.meta.total;
+
+                if (result.data.length === 0 && currentPage === 1) {
+                    showEmpty(listEl, '📭', '아직 고민이 없어요', '첫 번째 고민을 남겨보세요!');
+                } else {
+                    result.data.forEach(confession => {
+                        listEl.appendChild(renderConfessionCard(confession));
+                    });
+
+                    hasMore = currentPage < result.meta.total_pages;
+                    currentPage++;
+                }
+            } catch (error) {
+                showToast(error.message);
+            } finally {
+                isLoading = false;
+                loadingMore.style.display = 'none';
+            }
+        }
+
+        // 통계 로드
+        async function loadStats() {
+            try {
+                const result = await statsAPI.get();
+                document.getElementById('stat-confessions').textContent = formatNumber(result.data.total_confessions);
+                document.getElementById('stat-replies').textContent = formatNumber(result.data.total_replies);
+                document.getElementById('stat-rate').textContent = result.data.answered_rate + '%';
+            } catch (error) {
+                console.error('Stats load error:', error);
+            }
+        }
+
+        // 카테고리 탭 이벤트
+        document.getElementById('category-tabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-tab')) {
+                document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                loadConfessions(true);
+            }
+        });
+
+        // 정렬 변경 이벤트
+        document.getElementById('sort-select').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            loadConfessions(true);
+        });
+
+        // 무한 스크롤
+        setupInfiniteScroll(() => loadConfessions());
+
+        // 초기 로드
+        loadStats();
+        loadConfessions();
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>답장하기 - 마음우체통</title>
+    <meta name="description" content="누군가의 고민에 따뜻한 답장을 보내주세요.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="답장하기 - 마음우체통">
+    <meta property="og:description" content="누군가의 고민에 따뜻한 답장을 보내주세요.">
+    <meta property="og:url" content="https://allnewstartday.com/reply">
+    <meta property="og:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+    <meta property="og:site_name" content="마음우체통">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+
+    <!-- 구글 애드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7162051930516598" crossorigin="anonymous"></script>
+    <!-- 네이버 웹마스터 -->
+    <meta name="naver-site-verification" content="4362a3747096e4d72fb71efdf8c0452ebbc8aeca" />
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+</head>
+<body>
+    <!-- 상단 광고 (구글 애드센스) -->
+    <div class="ad-container ad-top">
+        <div class="ad-slot">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7162051930516598" data-ad-slot="AUTO" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>✍️ 답장하기</h1>
+            <p>누군가의 고민에 따뜻한 답장을 보내주세요</p>
+        </div>
+
+        <!-- 랜덤 고민 -->
+        <div id="random-confession">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- 답장 폼 -->
+        <div id="reply-section" style="display: none;">
+            <div class="card" style="margin-top: var(--space-md);">
+                <form id="reply-form">
+                    <label class="form-label">💌 당신의 답장</label>
+                    <textarea class="form-textarea" id="reply-content" placeholder="진심 어린 답장을 적어주세요. 당신의 한마디가 큰 힘이 됩니다!" maxlength="1000"></textarea>
+                    <div class="char-count"><span id="char-count">0</span>/1000</div>
+
+                    <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
+                        <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="loadRandomConfession()">
+                            🔄 다른 고민
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">
+                            답장 보내기 📨
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 빈 상태 -->
+        <div id="empty-state" style="display: none;">
+            <div class="card">
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>답장을 기다리는 고민이 없어요</h3>
+                    <p>잠시 후 다시 확인해보세요!</p>
+                    <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick="loadRandomConfession()">
+                        🔄 다시 확인
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 광고 (카카오 애드핏) -->
+    <div class="ad-container ad-bottom">
+        <div class="ad-slot">
+            <ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-tTbs6kroYj3SnOoV" data-ad-width="320" data-ad-height="50"></ins>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">📮 마음우체통</div>
+            <p class="footer-business">비즈니스 문의: <a href="mailto:Lovelyday2@kakao.com">Lovelyday2@kakao.com</a></p>
+            <p class="footer-copyright">© 2024 마음우체통. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/supabase-client.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/header.js"></script>
+    <script>
+        let currentConfession = null;
+
+        // 랜덤 고민 렌더링
+        function renderConfession(confession) {
+            const container = document.getElementById('random-confession');
+
+            container.innerHTML = `
+                <div class="card" style="border-left: 4px solid var(--primary);">
+                    <div class="confession-header">
+                        <span class="confession-emoji" style="font-size: 2rem;">${confession.emoji || '💌'}</span>
+                        <span class="confession-category ${confession.category}">
+                            ${getCategoryLabel(confession.category)}
+                        </span>
+                        <span class="confession-time">${formatTime(confession.created_at)}</span>
+                    </div>
+
+                    ${confession.title ? `<h2 style="font-size: 1.1rem; margin: var(--space-md) 0; color: var(--text-primary);">${confession.title}</h2>` : ''}
+
+                    <div style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap; color: var(--text-primary);">
+                        ${confession.content}
+                    </div>
+
+                    <div style="margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border);">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">
+                            💬 ${confession.reply_count}개의 답장
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('reply-section').style.display = 'block';
+            document.getElementById('empty-state').style.display = 'none';
+        }
+
+        // 랜덤 고민 로드
+        async function loadRandomConfession() {
+            const container = document.getElementById('random-confession');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            document.getElementById('reply-section').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'none';
+
+            try {
+                const result = await confessionAPI.random();
+                currentConfession = result.data;
+                renderConfession(currentConfession);
+
+                // 답장 폼 초기화
+                document.getElementById('reply-content').value = '';
+                document.getElementById('char-count').textContent = '0';
+            } catch (error) {
+                container.innerHTML = '';
+                document.getElementById('empty-state').style.display = 'block';
+            }
+        }
+
+        // 글자 수 카운트
+        const contentEl = document.getElementById('reply-content');
+        const charCountEl = document.getElementById('char-count');
+
+        contentEl.addEventListener('input', () => {
+            charCountEl.textContent = contentEl.value.length;
+        });
+
+        // 답장 제출
+        document.getElementById('reply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentConfession) {
+                showToast('고민을 먼저 선택해주세요');
+                return;
+            }
+
+            const content = contentEl.value.trim();
+
+            if (content.length < 1) {
+                showToast('내용을 입력해주세요');
+                return;
+            }
+
+            try {
+                const result = await replyAPI.create(currentConfession.id, content);
+                showToast(result.message);
+
+                // 성공 후 다른 고민 로드
+                setTimeout(() => {
+                    loadRandomConfession();
+                }, 1500);
+            } catch (error) {
+                showToast(error.message);
+            }
+        });
+
+        // 초기 로드
+        loadRandomConfession();
+    </script>
+</body>
+</html>

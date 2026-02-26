@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - 마음우체통</title>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <style>
+        body {
+            padding-bottom: 0;
+        }
+
+        .admin-header {
+            background: var(--text-primary);
+            color: white;
+            padding: var(--space-md) var(--space-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .admin-nav button {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            transition: all var(--duration);
+        }
+
+        .admin-nav button.active,
+        .admin-nav button:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+        }
+
+        /* 로그인 화면 */
+        .login-box {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: var(--space-xl);
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px var(--shadow);
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: var(--space-lg);
+        }
+
+        /* 대시보드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            text-align: center;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: var(--space-xs);
+        }
+
+        .stat-card.highlight {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+        }
+
+        .stat-card.highlight .value,
+        .stat-card.highlight .label {
+            color: white;
+        }
+
+        /* 섹션 */
+        .section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        /* 테이블 */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .admin-table th {
+            background: var(--bg-hover);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .admin-table td {
+            font-size: 0.9rem;
+        }
+
+        .admin-table tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .content-preview {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .delete-btn {
+            padding: 4px 12px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: all var(--duration);
+        }
+
+        .delete-btn:hover {
+            background: #ee5a5a;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            background: var(--border);
+        }
+
+        .badge.love { background: var(--cat-love); }
+        .badge.work { background: var(--cat-work); }
+        .badge.family { background: var(--cat-family); }
+        .badge.friend { background: var(--cat-friend); }
+        .badge.health { background: var(--cat-health); }
+
+        /* 페이지네이션 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-sm);
+            margin-top: var(--space-lg);
+        }
+
+        .pagination button {
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-card);
+            transition: all var(--duration);
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 탭 콘텐츠 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 반응형 테이블 */
+        @media (max-width: 768px) {
+            .admin-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 로그인 화면 -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>🔐 관리자 로그인</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <input type="password" class="form-input" id="password" placeholder="비밀번호" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">로그인</button>
+            </form>
+            <p style="margin-top: var(--space-md); font-size: 0.85rem; color: var(--text-muted);">
+                <a href="/" style="color: var(--primary);">← 홈으로 돌아가기</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- 관리자 화면 -->
+    <div id="admin-screen" style="display: none;">
+        <header class="admin-header">
+            <h1>📮 마음우체통 관리자</h1>
+            <nav class="admin-nav">
+                <button class="active" data-tab="dashboard">대시보드</button>
+                <button data-tab="content">콘텐츠 통계</button>
+                <button data-tab="confessions">고민 관리</button>
+                <button data-tab="replies">답장 관리</button>
+                <button onclick="logout()">로그아웃</button>
+            </nav>
+        </header>
+
+        <div class="admin-container">
+            <!-- 대시보드 탭 -->
+            <div id="dashboard-tab" class="tab-content active">
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="value" id="stat-confessions">-</div>
+                        <div class="label">총 고민</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-replies">-</div>
+                        <div class="label">총 답장</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-likes">-</div>
+                        <div class="label">총 공감</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-users">-</div>
+                        <div class="label">사용자</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-today-confessions">-</div>
+                        <div class="label">오늘 고민</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-today-replies">-</div>
+                        <div class="label">오늘 답장</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">📬 최근 고민</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>카테고리</th>
+                                <th>내용</th>
+                                <th>답장</th>
+                                <th>공감</th>
+                                <th>작성일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-confessions"></tbody>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">💬 최근 답장</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>답장 내용</th>
+                                <th>원본 고민</th>
+                                <th>작성일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-replies"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 고민 관리 탭 -->
+            <div id="confessions-tab" class="tab-content">
+                <div class="section">
+                    <h3 class="section-title">📝 전체 고민 목록</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>카테고리</th>
+                                <th>내용</th>
+                                <th>답장</th>
+                                <th>공감</th>
+                                <th>조회</th>
+                                <th>작성일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="confessions-list"></tbody>
+                    </table>
+                    <div class="pagination" id="confessions-pagination"></div>
+                </div>
+            </div>
+
+            <!-- 답장 관리 탭 -->
+            <div id="replies-tab" class="tab-content">
+                <div class="section">
+                    <h3 class="section-title">💬 전체 답장 목록</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">고민 상세 페이지에서 답장을 관리할 수 있습니다.</p>
+                </div>
+            </div>
+
+            <!-- 콘텐츠 통계 탭 -->
+            <div id="content-tab" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="value" id="stat-total-tests">-</div>
+                        <div class="label">총 테스트</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-total-games">-</div>
+                        <div class="label">총 게임</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-today-tests">-</div>
+                        <div class="label">오늘 테스트</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-today-games">-</div>
+                        <div class="label">오늘 게임</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">🧠 심리테스트 인기 순위</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>테스트명</th>
+                                <th>이용 횟수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="test-stats-list"></tbody>
+                    </table>
+                    <p id="test-stats-empty" style="color: var(--text-muted); font-size: 0.9rem; display: none;">아직 통계 데이터가 없습니다.</p>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">🎮 미니게임 인기 순위</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>게임명</th>
+                                <th>이용 횟수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="game-stats-list"></tbody>
+                    </table>
+                    <p id="game-stats-empty" style="color: var(--text-muted); font-size: 0.9rem; display: none;">아직 통계 데이터가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/supabase-client.js"></script>
+    <script>
+        // 시간 포맷
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 텍스트 자르기
+        function truncate(text, length = 50) {
+            if (!text) return '';
+            if (text.length <= length) return text;
+            return text.slice(0, length) + '...';
+        }
+
+        // 비밀번호 저장/조회 (sessionStorage)
+        function getAdminPassword() {
+            return sessionStorage.getItem('admin_password');
+        }
+
+        function setAdminPassword(pw) {
+            sessionStorage.setItem('admin_password', pw);
+        }
+
+        function clearAdminPassword() {
+            sessionStorage.removeItem('admin_password');
+        }
+
+        // 로그인 확인
+        async function checkAuth() {
+            const savedPassword = getAdminPassword();
+            if (!savedPassword) return;
+
+            try {
+                const { data, error } = await supabase.rpc('admin_login', {
+                    p_password: savedPassword
+                });
+
+                if (!error && data === true) {
+                    showAdminScreen();
+                    loadDashboard();
+                } else {
+                    clearAdminPassword();
+                }
+            } catch (e) {
+                clearAdminPassword();
+            }
+        }
+
+        // 로그인 폼 제출
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+
+            try {
+                const { data, error } = await supabase.rpc('admin_login', {
+                    p_password: password
+                });
+
+                if (!error && data === true) {
+                    setAdminPassword(password);
+                    showAdminScreen();
+                    loadDashboard();
+                } else {
+                    alert('비밀번호가 올바르지 않습니다');
+                }
+            } catch (err) {
+                alert('로그인 실패: ' + (err.message || '알 수 없는 오류'));
+            }
+        });
+
+        // 로그아웃
+        function logout() {
+            clearAdminPassword();
+            location.reload();
+        }
+
+        // 관리자 화면 표시
+        function showAdminScreen() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-screen').style.display = 'block';
+        }
+
+        // 대시보드 로드
+        async function loadDashboard() {
+            const adminPassword = getAdminPassword();
+
+            try {
+                const { data, error } = await supabase.rpc('admin_dashboard', {
+                    p_password: adminPassword
+                });
+
+                if (error || !data) {
+                    console.error('Dashboard error:', error);
+                    return;
+                }
+
+                const { stats, recent_confessions, recent_replies } = data;
+
+                // 통계
+                document.getElementById('stat-confessions').textContent = stats.total_confessions;
+                document.getElementById('stat-replies').textContent = stats.total_replies;
+                document.getElementById('stat-likes').textContent = stats.total_likes;
+                document.getElementById('stat-users').textContent = stats.total_users;
+                document.getElementById('stat-today-confessions').textContent = stats.today_confessions;
+                document.getElementById('stat-today-replies').textContent = stats.today_replies;
+
+                // 최근 고민
+                document.getElementById('recent-confessions').innerHTML = (recent_confessions || []).map(c => `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td><span class="badge ${c.category}">${c.category}</span></td>
+                        <td class="content-preview">${truncate(c.content, 40)}</td>
+                        <td>${c.reply_count}</td>
+                        <td>${c.like_count}</td>
+                        <td>${formatTime(c.created_at)}</td>
+                    </tr>
+                `).join('');
+
+                // 최근 답장
+                document.getElementById('recent-replies').innerHTML = (recent_replies || []).map(r => `
+                    <tr>
+                        <td>${r.id}</td>
+                        <td class="content-preview">${truncate(r.content, 40)}</td>
+                        <td class="content-preview">${truncate(r.confession_content, 30)}</td>
+                        <td>${formatTime(r.created_at)}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('loadDashboard error:', err);
+            }
+        }
+
+        // 콘텐츠 통계 로드
+        async function loadContentStats() {
+            const adminPassword = getAdminPassword();
+
+            try {
+                const { data, error } = await supabase.rpc('admin_content_stats', {
+                    p_password: adminPassword
+                });
+
+                if (error || !data) {
+                    console.error('Content stats error:', error);
+                    return;
+                }
+
+                const { total_tests, total_games, today_tests, today_games, test_stats, game_stats } = data;
+
+                // 통계 카드
+                document.getElementById('stat-total-tests').textContent = total_tests;
+                document.getElementById('stat-total-games').textContent = total_games;
+                document.getElementById('stat-today-tests').textContent = today_tests;
+                document.getElementById('stat-today-games').textContent = today_games;
+
+                // 테스트 순위
+                const testList = document.getElementById('test-stats-list');
+                const testEmpty = document.getElementById('test-stats-empty');
+
+                if (test_stats && test_stats.length > 0) {
+                    testList.innerHTML = test_stats.map((t, i) => `
+                        <tr>
+                            <td><strong>${i + 1}</strong></td>
+                            <td>${t.content_name}</td>
+                            <td>${t.count}회</td>
+                        </tr>
+                    `).join('');
+                    testEmpty.style.display = 'none';
+                } else {
+                    testList.innerHTML = '';
+                    testEmpty.style.display = 'block';
+                }
+
+                // 게임 순위
+                const gameList = document.getElementById('game-stats-list');
+                const gameEmpty = document.getElementById('game-stats-empty');
+
+                if (game_stats && game_stats.length > 0) {
+                    gameList.innerHTML = game_stats.map((g, i) => `
+                        <tr>
+                            <td><strong>${i + 1}</strong></td>
+                            <td>${g.content_name}</td>
+                            <td>${g.count}회</td>
+                        </tr>
+                    `).join('');
+                    gameEmpty.style.display = 'none';
+                } else {
+                    gameList.innerHTML = '';
+                    gameEmpty.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('loadContentStats error:', err);
+            }
+        }
+
+        // 고민 목록 로드
+        let currentPage = 1;
+
+        async function loadConfessions(page = 1) {
+            currentPage = page;
+            const adminPassword = getAdminPassword();
+
+            try {
+                const { data, error } = await supabase.rpc('admin_confessions', {
+                    p_password: adminPassword,
+                    p_page: page,
+                    p_per_page: 20
+                });
+
+                if (error || !data) {
+                    console.error('Confessions error:', error);
+                    return;
+                }
+
+                const { items, meta } = data;
+
+                document.getElementById('confessions-list').innerHTML = (items || []).map(c => `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td><span class="badge ${c.category}">${c.category}</span></td>
+                        <td class="content-preview">${truncate(c.content, 40)}</td>
+                        <td>${c.reply_count}</td>
+                        <td>${c.like_count}</td>
+                        <td>${c.view_count}</td>
+                        <td>${formatTime(c.created_at)}</td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteConfession('${c.id}')">삭제</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // 페이지네이션
+                const totalPages = (meta && meta.total_pages) ? meta.total_pages : 1;
+                let paginationHtml = '';
+                paginationHtml += `<button onclick="loadConfessions(${page - 1})" ${page <= 1 ? 'disabled' : ''}>이전</button>`;
+                paginationHtml += `<span style="padding: 8px 16px;">${page} / ${totalPages}</span>`;
+                paginationHtml += `<button onclick="loadConfessions(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>다음</button>`;
+                document.getElementById('confessions-pagination').innerHTML = paginationHtml;
+            } catch (err) {
+                console.error('loadConfessions error:', err);
+            }
+        }
+
+        // 고민 삭제
+        async function deleteConfession(id) {
+            if (!confirm('정말 삭제하시겠습니까? 관련 답장도 모두 삭제됩니다.')) return;
+
+            const adminPassword = getAdminPassword();
+
+            try {
+                const { error } = await supabase.rpc('admin_delete_confession', {
+                    p_password: adminPassword,
+                    p_confession_id: id
+                });
+
+                if (error) {
+                    alert('삭제 실패: ' + error.message);
+                    return;
+                }
+
+                loadConfessions(currentPage);
+                loadDashboard();
+            } catch (err) {
+                alert('삭제 실패: ' + (err.message || '알 수 없는 오류'));
+            }
+        }
+
+        // 답장 삭제
+        async function deleteReply(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+
+            const adminPassword = getAdminPassword();
+
+            try {
+                const { error } = await supabase.rpc('admin_delete_reply', {
+                    p_password: adminPassword,
+                    p_reply_id: id
+                });
+
+                if (error) {
+                    alert('삭제 실패: ' + error.message);
+                    return;
+                }
+
+                loadDashboard();
+            } catch (err) {
+                alert('삭제 실패: ' + (err.message || '알 수 없는 오류'));
+            }
+        }
+
+        // 탭 전환
+        document.querySelectorAll('.admin-nav button[data-tab]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+
+                if (btn.dataset.tab === 'confessions') {
+                    loadConfessions();
+                } else if (btn.dataset.tab === 'content') {
+                    loadContentStats();
+                }
+            });
+        });
+
+        // 초기화
+        checkAuth();
+    </script>
+</body>
+</html>

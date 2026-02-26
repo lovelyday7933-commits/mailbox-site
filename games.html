@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>미니게임 - 마음우체통</title>
+    <meta name="description" content="밸런스게임, 이상형월드컵, 타자게임 등 재미있는 미니게임!">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="미니게임 - 마음우체통">
+    <meta property="og:description" content="밸런스게임, 이상형월드컵, 타자게임 등 재미있는 미니게임!">
+    <meta property="og:url" content="https://allnewstartday.com/games">
+    <meta property="og:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+    <meta property="og:site_name" content="마음우체통">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+
+    <!-- 구글 애드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7162051930516598" crossorigin="anonymous"></script>
+    <!-- 네이버 웹마스터 -->
+    <meta name="naver-site-verification" content="4362a3747096e4d72fb71efdf8c0452ebbc8aeca" />
+    <!-- 카카오 애드핏 -->
+    <script async src="https://t1.daumcdn.net/kas/static/ba.min.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <style>
+        .game-tabs {
+            display: flex;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            overflow-x: auto;
+            padding-bottom: var(--space-sm);
+        }
+
+        .game-tab {
+            flex-shrink: 0;
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            transition: all var(--duration);
+        }
+
+        .game-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+
+        @media (min-width: 480px) {
+            .game-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: var(--space-lg);
+            box-shadow: 0 2px 8px var(--shadow);
+            cursor: pointer;
+            transition: all var(--duration) var(--ease-out);
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .game-card .icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-md);
+        }
+
+        /* 밸런스 게임 */
+        .balance-container {
+            display: none;
+        }
+
+        .balance-vs {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .balance-option {
+            flex: 1;
+            background: var(--bg-card);
+            border: 3px solid var(--border);
+            border-radius: 16px;
+            padding: var(--space-xl);
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all var(--duration);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .balance-option:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+        }
+
+        .balance-option:active {
+            transform: scale(0.95);
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .balance-option.selected-a {
+            background: #FFB5A7;
+            border-color: #FFB5A7;
+            color: white;
+        }
+
+        .balance-option.selected-b {
+            background: #B5838D;
+            border-color: #B5838D;
+            color: white;
+        }
+
+        .vs-badge {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--text-primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .balance-progress {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: var(--space-md);
+        }
+
+        /* 월드컵 */
+        .worldcup-container {
+            display: none;
+        }
+
+        .worldcup-match {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        @media (min-width: 480px) {
+            .worldcup-match {
+                flex-direction: row;
+            }
+        }
+
+        .worldcup-card {
+            flex: 1;
+            background: var(--bg-card);
+            border: 3px solid var(--border);
+            border-radius: 16px;
+            padding: var(--space-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--duration);
+        }
+
+        .worldcup-card:hover {
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .worldcup-card:active {
+            transform: scale(0.98);
+        }
+
+        .worldcup-card .emoji {
+            font-size: 4rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .worldcup-card h3 {
+            font-size: 1.1rem;
+        }
+
+        .worldcup-round {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* 미니게임 공통 */
+        .minigame-container {
+            display: none;
+        }
+
+        .game-canvas-wrapper {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .game-canvas-wrapper canvas {
+            width: 100%;
+            max-width: 400px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+
+        .game-score {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: var(--space-md);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-md);
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 광고 (구글 애드센스) -->
+    <div class="ad-container ad-top">
+        <div class="ad-slot">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7162051930516598" data-ad-slot="AUTO" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>🎮 미니게임</h1>
+            <p>재미있는 게임으로 시간을 보내세요</p>
+        </div>
+
+        <!-- 게임 선택 -->
+        <div id="game-select">
+            <div class="game-tabs">
+                <button class="game-tab active" data-type="balance">⚖️ 밸런스게임</button>
+                <button class="game-tab" data-type="worldcup">🏆 이상형월드컵</button>
+                <button class="game-tab" data-type="mini">🕹️ 미니게임</button>
+            </div>
+
+            <!-- 밸런스게임 카테고리 -->
+            <div id="balance-categories" class="game-grid">
+                <div class="game-card" onclick="startBalance('mz')">
+                    <div class="icon">🧑‍💻</div>
+                    <h3>MZ 밸런스</h3>
+                    <p>요즘 세대의 고민들</p>
+                </div>
+                <div class="game-card" onclick="startBalance('love')">
+                    <div class="icon">💕</div>
+                    <h3>연애 밸런스</h3>
+                    <p>연인과의 상황</p>
+                </div>
+                <div class="game-card" onclick="startBalance('money')">
+                    <div class="icon">💰</div>
+                    <h3>돈 밸런스</h3>
+                    <p>현실적인 선택</p>
+                </div>
+                <div class="game-card" onclick="startBalance('future')">
+                    <div class="icon">🔮</div>
+                    <h3>미래 밸런스</h3>
+                    <p>인생의 갈림길</p>
+                </div>
+            </div>
+
+            <!-- 월드컵 테마 -->
+            <div id="worldcup-themes" class="game-grid" style="display: none;">
+                <div class="game-card" onclick="startWorldcup('meme')">
+                    <div class="icon">😂</div>
+                    <h3>밈/드립 월드컵</h3>
+                    <p>32강</p>
+                </div>
+                <div class="game-card" onclick="startWorldcup('kpop')">
+                    <div class="icon">🎤</div>
+                    <h3>K-POP 명곡 월드컵</h3>
+                    <p>32강</p>
+                </div>
+                <div class="game-card" onclick="startWorldcup('food')">
+                    <div class="icon">🍔</div>
+                    <h3>음식 월드컵</h3>
+                    <p>16강</p>
+                </div>
+                <div class="game-card" onclick="startWorldcup('travel')">
+                    <div class="icon">✈️</div>
+                    <h3>여행지 월드컵</h3>
+                    <p>16강</p>
+                </div>
+            </div>
+
+            <!-- 미니게임 목록 -->
+            <div id="mini-games" class="game-grid" style="display: none;">
+                <div class="game-card" onclick="startMiniGame('typing')">
+                    <div class="icon">⌨️</div>
+                    <h3>타자 게임</h3>
+                    <p>떨어지는 단어를 잡아라!</p>
+                </div>
+                <div class="game-card" onclick="startMiniGame('reaction')">
+                    <div class="icon">⚡</div>
+                    <h3>반응속도 테스트</h3>
+                    <p>얼마나 빠르게 반응할 수 있나요?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 밸런스게임 진행 -->
+        <div id="balance-game" class="balance-container">
+            <div class="balance-progress" id="balance-progress">1 / 10</div>
+            <div class="card" style="position: relative;">
+                <div class="balance-vs" id="balance-options"></div>
+            </div>
+            <div style="text-align: center; margin-top: var(--space-md);">
+                <button class="btn btn-ghost" onclick="endBalance()">← 목록으로</button>
+            </div>
+        </div>
+
+        <!-- 월드컵 진행 -->
+        <div id="worldcup-game" class="worldcup-container">
+            <div class="worldcup-round" id="worldcup-round">32강</div>
+            <div class="worldcup-match" id="worldcup-match"></div>
+            <div style="text-align: center; margin-top: var(--space-md);">
+                <button class="btn btn-ghost" onclick="endWorldcup()">← 목록으로</button>
+            </div>
+        </div>
+
+        <!-- 미니게임 진행 -->
+        <div id="minigame-area" class="minigame-container">
+            <div class="game-score">점수: <span id="game-score">0</span></div>
+            <div class="game-canvas-wrapper">
+                <canvas id="game-canvas" width="400" height="400"></canvas>
+            </div>
+            <div class="game-controls">
+                <button class="btn btn-primary" id="game-start-btn">시작</button>
+                <button class="btn btn-ghost" onclick="endMiniGame()">← 목록으로</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 광고 (카카오 애드핏) -->
+    <div class="ad-container ad-bottom">
+        <div class="ad-slot">
+            <ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-tTbs6kroYj3SnOoV" data-ad-width="320" data-ad-height="50"></ins>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">📮 마음우체통</div>
+            <p class="footer-business">비즈니스 문의: <a href="mailto:Lovelyday2@kakao.com">Lovelyday2@kakao.com</a></p>
+            <p class="footer-copyright">© 2024 마음우체통. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/supabase-client.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/header.js"></script>
+    <script>
+        // ============ 게임 데이터 ============
+
+        const BALANCE_DATA = {
+            mz: [
+                ['출근 대면 회의', '재택근무 + 카메라 ON'],
+                ['연봉 500 올리기', '연차 5일 더 받기'],
+                ['평생 유튜브 프리미엄', '평생 넷플릭스'],
+                ['점심값 회사 지원', '교통비 회사 지원'],
+                ['월요병 없는 삶', '금요일 조기퇴근'],
+                ['SNS 좋아요 1만개', '통장에 100만원'],
+                ['카페 무한 아아', '편의점 무한 음료'],
+                ['퇴근 후 헬스', '퇴근 후 치맥'],
+                ['워라밸 보장 월300', '야근 많음 월500'],
+                ['대기업 막내', '스타트업 리더'],
+            ],
+            love: [
+                ['먼저 고백하기', '고백 받기'],
+                ['장거리 연애', '같은 직장 연애'],
+                ['애교 많은 연인', '쿨한 연인'],
+                ['매일 카톡', '가끔 통화'],
+                ['기념일 완벽 챙김', '평소에 잘함'],
+                ['첫인상 별로 → 친해짐', '첫눈에 반함 → 식음'],
+                ['연상 연인', '연하 연인'],
+                ['바쁜 연인', '자주 보는 연인'],
+                ['질투하는 연인', '무관심한 연인'],
+                ['연봉 적은 이상형', '연봉 많은 보통'],
+            ],
+            money: [
+                ['로또 5억 당첨', '월급 100만원 인상'],
+                ['1년 해외여행', '1년 월급 2배'],
+                ['평생 무료 대중교통', '평생 무료 식사'],
+                ['지금 1000만원', '10년 후 1억'],
+                ['집 사기', '전세 살며 투자'],
+                ['안정 공무원', '불안 사업가'],
+                ['현재 연봉 유지 평생', '5년마다 20% 인상'],
+                ['퇴직금 2배', '연봉 10% 인상'],
+                ['주 4일 현재 연봉', '주 5일 20% 인상'],
+                ['평생 월세 무료', '평생 차량 무료'],
+            ],
+            future: [
+                ['30대 성공 후 은퇴', '60대까지 일하며 성장'],
+                ['1년 뒤 알 수 있음', '모르는 채 살기'],
+                ['과거로 돌아가기', '미래 보고 오기'],
+                ['평생 한 분야 전문가', '다양한 경험'],
+                ['서울 작은 집', '지방 큰 집'],
+                ['결혼 안하고 자유', '결혼해서 가정'],
+                ['꿈을 이룬 짧은 삶', '평범하고 긴 삶'],
+                ['유명해지기', '부자 되기'],
+                ['100세까지 건강', '60세까지 부자'],
+                ['노력해서 성공', '운으로 성공'],
+            ]
+        };
+
+        const WORLDCUP_DATA = {
+            meme: [
+                { emoji: '🫠', name: '그냥 녹아내림' },
+                { emoji: '💀', name: '어이상실' },
+                { emoji: '🗿', name: '무표정' },
+                { emoji: '🤡', name: '내가 광대였어' },
+                { emoji: '👁️', name: '눈 깔깔' },
+                { emoji: '🤌', name: '이탈리안 손' },
+                { emoji: '💅', name: 'K힙' },
+                { emoji: '🙃', name: '미쳐버린 긍정' },
+                { emoji: '😭', name: '울먹대기' },
+                { emoji: '🥲', name: '웃픈 눈물' },
+                { emoji: '🤪', name: '미친척' },
+                { emoji: '😈', name: '하하 계획대로' },
+                { emoji: '🥴', name: '취함' },
+                { emoji: '🤓', name: '사실 이건요' },
+                { emoji: '🫡', name: '충성' },
+                { emoji: '💯', name: '인정' },
+            ],
+            kpop: [
+                { emoji: '🔥', name: 'Fire - BTS' },
+                { emoji: '🌸', name: 'HYPE BOY - NewJeans' },
+                { emoji: '🎵', name: 'Next Level - aespa' },
+                { emoji: '💗', name: 'ANTIFRAGILE - LE SSERAFIM' },
+                { emoji: '👑', name: 'LOVE DIVE - IVE' },
+                { emoji: '⭐', name: 'Super Shy - NewJeans' },
+                { emoji: '🌙', name: 'Ditto - NewJeans' },
+                { emoji: '💜', name: 'Butter - BTS' },
+                { emoji: '🖤', name: 'Pink Venom - BLACKPINK' },
+                { emoji: '💎', name: 'Shut Down - BLACKPINK' },
+                { emoji: '🎤', name: 'Dynamite - BTS' },
+                { emoji: '🌟', name: 'OMG - NewJeans' },
+                { emoji: '💫', name: 'I AM - IVE' },
+                { emoji: '🎶', name: 'Savage - aespa' },
+                { emoji: '🔮', name: 'Attention - NewJeans' },
+                { emoji: '✨', name: 'How You Like That - BLACKPINK' },
+            ],
+            food: [
+                { emoji: '🍕', name: '피자' },
+                { emoji: '🍔', name: '햄버거' },
+                { emoji: '🍜', name: '라멘' },
+                { emoji: '🍣', name: '초밥' },
+                { emoji: '🍗', name: '치킨' },
+                { emoji: '🌮', name: '타코' },
+                { emoji: '🍝', name: '파스타' },
+                { emoji: '🍛', name: '카레' },
+                { emoji: '🥘', name: '찌개' },
+                { emoji: '🍱', name: '도시락' },
+                { emoji: '🥟', name: '만두' },
+                { emoji: '🍲', name: '샤브샤브' },
+                { emoji: '🥩', name: '스테이크' },
+                { emoji: '🍤', name: '새우튀김' },
+                { emoji: '🥗', name: '샐러드' },
+                { emoji: '🍰', name: '케이크' },
+            ],
+            travel: [
+                { emoji: '🗼', name: '파리' },
+                { emoji: '🗽', name: '뉴욕' },
+                { emoji: '🏯', name: '도쿄' },
+                { emoji: '🎡', name: '런던' },
+                { emoji: '🏝️', name: '발리' },
+                { emoji: '🌊', name: '하와이' },
+                { emoji: '🏔️', name: '스위스' },
+                { emoji: '🎰', name: '라스베가스' },
+                { emoji: '🕌', name: '두바이' },
+                { emoji: '🏛️', name: '로마' },
+                { emoji: '🌸', name: '오사카' },
+                { emoji: '🏖️', name: '괌' },
+                { emoji: '🌴', name: '방콕' },
+                { emoji: '🌉', name: '샌프란시스코' },
+                { emoji: '🎭', name: '베네치아' },
+                { emoji: '⛩️', name: '교토' },
+            ]
+        };
+
+        // ============ 탭 전환 ============
+
+        document.querySelectorAll('.game-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const type = tab.dataset.type;
+                document.getElementById('balance-categories').style.display = type === 'balance' ? 'grid' : 'none';
+                document.getElementById('worldcup-themes').style.display = type === 'worldcup' ? 'grid' : 'none';
+                document.getElementById('mini-games').style.display = type === 'mini' ? 'grid' : 'none';
+            });
+        });
+
+        // ============ 밸런스 게임 ============
+
+        let balanceQuestions = [];
+        let balanceIndex = 0;
+        let currentBalanceCategory = null;
+
+        const BALANCE_NAMES = {
+            mz: 'MZ 밸런스',
+            love: '연애 밸런스',
+            money: '돈 밸런스',
+            future: '미래 밸런스'
+        };
+
+        function startBalance(category) {
+            currentBalanceCategory = category;
+            balanceQuestions = [...BALANCE_DATA[category]];
+            shuffleArray(balanceQuestions);
+            balanceQuestions = balanceQuestions.slice(0, 10);
+            balanceIndex = 0;
+
+            document.getElementById('game-select').style.display = 'none';
+            document.getElementById('balance-game').style.display = 'block';
+
+            renderBalanceQuestion();
+        }
+
+        function renderBalanceQuestion() {
+            const q = balanceQuestions[balanceIndex];
+            document.getElementById('balance-progress').textContent = `${balanceIndex + 1} / ${balanceQuestions.length}`;
+
+            document.getElementById('balance-options').innerHTML = `
+                <div class="balance-option" onclick="selectBalance(0, this)">${q[0]}</div>
+                <div class="balance-option" onclick="selectBalance(1, this)">${q[1]}</div>
+            `;
+        }
+
+        function selectBalance(choice, el) {
+            el.classList.add(choice === 0 ? 'selected-a' : 'selected-b');
+
+            setTimeout(() => {
+                if (balanceIndex < balanceQuestions.length - 1) {
+                    balanceIndex++;
+                    renderBalanceQuestion();
+                } else {
+                    // 완료 통계 기록 (common.js의 trackContentUsage 사용)
+                    trackContentUsage('game', 'balance-' + currentBalanceCategory, BALANCE_NAMES[currentBalanceCategory]);
+                    showToast('밸런스게임 완료!');
+                    endBalance();
+                }
+            }, 300);
+        }
+
+        function endBalance() {
+            document.getElementById('balance-game').style.display = 'none';
+            document.getElementById('game-select').style.display = 'block';
+        }
+
+        // ============ 월드컵 ============
+
+        let worldcupCandidates = [];
+        let worldcupRound = [];
+        let worldcupWinners = [];
+        let wcRoundNum = 16;
+        let currentWorldcupTheme = null;
+
+        const WORLDCUP_NAMES = {
+            meme: '밈/드립 월드컵',
+            kpop: 'K-POP 명곡 월드컵',
+            food: '음식 월드컵',
+            travel: '여행지 월드컵'
+        };
+
+        function startWorldcup(theme) {
+            currentWorldcupTheme = theme;
+            worldcupCandidates = [...WORLDCUP_DATA[theme]];
+            shuffleArray(worldcupCandidates);
+            worldcupRound = [...worldcupCandidates];
+            worldcupWinners = [];
+            wcRoundNum = worldcupCandidates.length;
+
+            document.getElementById('game-select').style.display = 'none';
+            document.getElementById('worldcup-game').style.display = 'block';
+
+            renderWorldcupMatch();
+        }
+
+        function renderWorldcupMatch() {
+            if (worldcupRound.length === 0) {
+                if (worldcupWinners.length === 1) {
+                    // 최종 우승
+                    showWorldcupResult(worldcupWinners[0]);
+                    return;
+                }
+                worldcupRound = [...worldcupWinners];
+                worldcupWinners = [];
+                wcRoundNum = worldcupRound.length;
+            }
+
+            const roundName = wcRoundNum === 2 ? '결승' : wcRoundNum === 4 ? '4강' : wcRoundNum === 8 ? '8강' : `${wcRoundNum}강`;
+            document.getElementById('worldcup-round').textContent = roundName;
+
+            const a = worldcupRound.shift();
+            const b = worldcupRound.shift();
+
+            document.getElementById('worldcup-match').innerHTML = `
+                <div class="worldcup-card" onclick="selectWorldcup(0)">
+                    <div class="emoji">${a.emoji}</div>
+                    <h3>${a.name}</h3>
+                </div>
+                <div class="worldcup-card" onclick="selectWorldcup(1)">
+                    <div class="emoji">${b.emoji}</div>
+                    <h3>${b.name}</h3>
+                </div>
+            `;
+
+            window.wcCurrentMatch = [a, b];
+        }
+
+        function selectWorldcup(choice) {
+            worldcupWinners.push(window.wcCurrentMatch[choice]);
+
+            setTimeout(() => {
+                renderWorldcupMatch();
+            }, 300);
+        }
+
+        function showWorldcupResult(winner) {
+            // 완료 통계 기록 (common.js의 trackContentUsage 사용)
+            trackContentUsage('game', 'worldcup-' + currentWorldcupTheme, WORLDCUP_NAMES[currentWorldcupTheme]);
+
+            document.getElementById('worldcup-match').innerHTML = `
+                <div class="card" style="width: 100%; text-align: center; padding: var(--space-xl);">
+                    <div style="font-size: 6rem; margin-bottom: var(--space-md);">${winner.emoji}</div>
+                    <h2 style="font-size: 1.5rem; margin-bottom: var(--space-sm);">🏆 우승!</h2>
+                    <p style="font-size: 1.2rem; color: var(--primary-dark);">${winner.name}</p>
+                    <div style="margin-top: var(--space-lg);">
+                        <button class="btn btn-primary" onclick="endWorldcup()">다시 하기</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('worldcup-round').textContent = '결과';
+        }
+
+        function endWorldcup() {
+            document.getElementById('worldcup-game').style.display = 'none';
+            document.getElementById('game-select').style.display = 'block';
+        }
+
+        // ============ 미니게임 ============
+
+        let currentMiniGame = null;
+        let gameCanvas, gameCtx;
+        let gameData = {};
+        let gameInterval = null;
+
+        const MINIGAME_NAMES = {
+            typing: '타자 게임',
+            reaction: '반응속도 테스트'
+        };
+
+        function startMiniGame(type) {
+            currentMiniGame = type;
+
+            // 미니게임 시작 시 통계 기록 (common.js의 trackContentUsage 사용)
+            trackContentUsage('game', 'minigame-' + type, MINIGAME_NAMES[type]);
+
+            document.getElementById('game-select').style.display = 'none';
+            document.getElementById('minigame-area').style.display = 'block';
+
+            gameCanvas = document.getElementById('game-canvas');
+            gameCtx = gameCanvas.getContext('2d');
+            document.getElementById('game-score').textContent = '0';
+
+            if (type === 'typing') {
+                initTypingGame();
+            } else if (type === 'reaction') {
+                initReactionGame();
+            }
+        }
+
+        // 타자 게임
+        function initTypingGame() {
+            const words = ['사랑', '행복', '희망', '꿈', '미래', '친구', '가족', '우정', '용기', '성공'];
+            gameData = { words: [], score: 0, speed: 2 };
+
+            document.getElementById('game-start-btn').onclick = () => {
+                gameData.words = [];
+                gameData.score = 0;
+                document.getElementById('game-score').textContent = '0';
+
+                if (gameInterval) clearInterval(gameInterval);
+
+                gameInterval = setInterval(() => {
+                    // 새 단어 추가
+                    if (Math.random() < 0.05) {
+                        const word = words[Math.floor(Math.random() * words.length)];
+                        gameData.words.push({
+                            text: word,
+                            x: Math.random() * 300 + 50,
+                            y: 0
+                        });
+                    }
+
+                    // 단어 이동 & 렌더
+                    gameCtx.fillStyle = '#1a1a2e';
+                    gameCtx.fillRect(0, 0, 400, 400);
+
+                    gameData.words = gameData.words.filter(w => {
+                        w.y += gameData.speed;
+                        if (w.y > 400) {
+                            gameData.score = Math.max(0, gameData.score - 5);
+                            document.getElementById('game-score').textContent = gameData.score;
+                            return false;
+                        }
+
+                        gameCtx.fillStyle = '#FFB5A7';
+                        gameCtx.font = '20px Pretendard';
+                        gameCtx.fillText(w.text, w.x, w.y);
+                        return true;
+                    });
+                }, 50);
+            };
+
+            // 터치/클릭으로 단어 제거
+            gameCanvas.onclick = gameCanvas.ontouchstart = (e) => {
+                e.preventDefault();
+                const rect = gameCanvas.getBoundingClientRect();
+                const touch = e.touches ? e.touches[0] : e;
+                const x = (touch.clientX - rect.left) / rect.width * 400;
+                const y = (touch.clientY - rect.top) / rect.height * 400;
+
+                gameData.words = gameData.words.filter(w => {
+                    const dist = Math.sqrt((w.x - x) ** 2 + (w.y - y) ** 2);
+                    if (dist < 40) {
+                        gameData.score += 10;
+                        document.getElementById('game-score').textContent = gameData.score;
+                        if (navigator.vibrate) navigator.vibrate(10);
+                        return false;
+                    }
+                    return true;
+                });
+            };
+        }
+
+        // 반응속도 게임
+        function initReactionGame() {
+            gameData = { waiting: false, startTime: 0, results: [] };
+
+            gameCtx.fillStyle = '#1a1a2e';
+            gameCtx.fillRect(0, 0, 400, 400);
+            gameCtx.fillStyle = '#fff';
+            gameCtx.font = '20px Pretendard';
+            gameCtx.textAlign = 'center';
+            gameCtx.fillText('시작을 누르세요', 200, 200);
+
+            document.getElementById('game-start-btn').onclick = () => {
+                gameCtx.fillStyle = '#ff6b6b';
+                gameCtx.fillRect(0, 0, 400, 400);
+                gameCtx.fillStyle = '#fff';
+                gameCtx.fillText('초록색이 되면 탭하세요!', 200, 200);
+
+                const delay = 2000 + Math.random() * 3000;
+
+                setTimeout(() => {
+                    gameCtx.fillStyle = '#51cf66';
+                    gameCtx.fillRect(0, 0, 400, 400);
+                    gameCtx.fillStyle = '#fff';
+                    gameCtx.fillText('지금!', 200, 200);
+                    gameData.waiting = true;
+                    gameData.startTime = Date.now();
+                }, delay);
+            };
+
+            gameCanvas.onclick = gameCanvas.ontouchstart = (e) => {
+                e.preventDefault();
+                if (!gameData.waiting) return;
+
+                const reaction = Date.now() - gameData.startTime;
+                gameData.waiting = false;
+                gameData.results.push(reaction);
+
+                gameCtx.fillStyle = '#1a1a2e';
+                gameCtx.fillRect(0, 0, 400, 400);
+                gameCtx.fillStyle = '#FFB5A7';
+                gameCtx.fillText(`${reaction}ms`, 200, 180);
+                gameCtx.fillStyle = '#fff';
+                gameCtx.font = '16px Pretendard';
+                gameCtx.fillText('다시 시작을 눌러 도전하세요', 200, 220);
+
+                document.getElementById('game-score').textContent = reaction + 'ms';
+                if (navigator.vibrate) navigator.vibrate(20);
+            };
+        }
+
+        function endMiniGame() {
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+            document.getElementById('minigame-area').style.display = 'none';
+            document.getElementById('game-select').style.display = 'block';
+        }
+
+        // ============ 유틸리티 ============
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // URL 파라미터 체크
+        const urlParams = new URLSearchParams(location.search);
+        const gameParam = urlParams.get('game');
+        const categoryParam = urlParams.get('category');
+        const themeParam = urlParams.get('theme');
+
+        if (gameParam === 'balance' && categoryParam && BALANCE_DATA[categoryParam]) {
+            setTimeout(() => startBalance(categoryParam), 100);
+        } else if (gameParam === 'worldcup' && themeParam && WORLDCUP_DATA[themeParam]) {
+            setTimeout(() => startWorldcup(themeParam), 100);
+        } else if (gameParam === 'typing') {
+            setTimeout(() => startMiniGame('typing'), 100);
+        } else if (gameParam === 'reaction') {
+            setTimeout(() => startMiniGame('reaction'), 100);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>고민 쓰기 - 마음우체통</title>
+    <meta name="description" content="익명으로 고민을 작성해보세요. 따뜻한 답장이 기다리고 있어요.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="고민 쓰기 - 마음우체통">
+    <meta property="og:description" content="익명으로 고민을 작성해보세요. 따뜻한 답장이 기다리고 있어요.">
+    <meta property="og:url" content="https://allnewstartday.com/write">
+    <meta property="og:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+    <meta property="og:site_name" content="마음우체통">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+
+    <!-- 구글 애드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7162051930516598" crossorigin="anonymous"></script>
+    <!-- 네이버 웹마스터 -->
+    <meta name="naver-site-verification" content="4362a3747096e4d72fb71efdf8c0452ebbc8aeca" />
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+</head>
+<body>
+    <!-- 상단 광고 (구글 애드센스) -->
+    <div class="ad-container ad-top">
+        <div class="ad-slot">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7162051930516598" data-ad-slot="AUTO" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>📝 고민 쓰기</h1>
+            <p>익명으로 고민을 털어놓으세요</p>
+        </div>
+
+        <form id="write-form" class="card">
+            <!-- 이모지 선택 -->
+            <div class="form-group">
+                <label class="form-label">편지 봉투 선택</label>
+                <div class="emoji-picker" id="emoji-picker">
+                    <button type="button" class="emoji-btn active" data-emoji="💌">💌</button>
+                    <button type="button" class="emoji-btn" data-emoji="💭">💭</button>
+                    <button type="button" class="emoji-btn" data-emoji="💔">💔</button>
+                    <button type="button" class="emoji-btn" data-emoji="😢">😢</button>
+                    <button type="button" class="emoji-btn" data-emoji="😤">😤</button>
+                    <button type="button" class="emoji-btn" data-emoji="🤔">🤔</button>
+                    <button type="button" class="emoji-btn" data-emoji="😊">😊</button>
+                    <button type="button" class="emoji-btn" data-emoji="🙏">🙏</button>
+                </div>
+            </div>
+
+            <!-- 카테고리 선택 -->
+            <div class="form-group">
+                <label class="form-label">카테고리</label>
+                <div class="category-tabs">
+                    <button type="button" class="category-tab active" data-category="general">일반</button>
+                    <button type="button" class="category-tab" data-category="love">연애</button>
+                    <button type="button" class="category-tab" data-category="work">직장/학교</button>
+                    <button type="button" class="category-tab" data-category="family">가족</button>
+                    <button type="button" class="category-tab" data-category="friend">친구</button>
+                    <button type="button" class="category-tab" data-category="health">건강</button>
+                </div>
+            </div>
+
+            <!-- 제목 (선택) -->
+            <div class="form-group">
+                <label class="form-label">제목 (선택)</label>
+                <input type="text" class="form-input" id="title" placeholder="고민을 한 줄로 요약해보세요" maxlength="50">
+            </div>
+
+            <!-- 내용 -->
+            <div class="form-group">
+                <label class="form-label">고민 내용 *</label>
+                <textarea class="form-textarea" id="content" placeholder="여기에 고민을 적어주세요. 익명이니 편하게 털어놓으세요!" maxlength="2000" required></textarea>
+                <div class="char-count"><span id="char-count">0</span>/2000</div>
+            </div>
+
+            <!-- 안내 -->
+            <div style="background: var(--bg-hover); padding: var(--space-md); border-radius: 12px; margin-bottom: var(--space-lg);">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                    ✨ 당신의 고민은 완전히 익명으로 처리됩니다.<br>
+                    💌 다른 사용자들이 따뜻한 답장을 보내줄 거예요.<br>
+                    🚫 욕설, 비방, 광고는 삭제될 수 있습니다.
+                </p>
+            </div>
+
+            <!-- 버튼 -->
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">
+                우체통에 넣기 📮
+            </button>
+        </form>
+    </div>
+
+    <!-- 하단 광고 (카카오 애드핏) -->
+    <div class="ad-container ad-bottom">
+        <div class="ad-slot">
+            <ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-tTbs6kroYj3SnOoV" data-ad-width="320" data-ad-height="50"></ins>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">📮 마음우체통</div>
+            <p class="footer-business">비즈니스 문의: <a href="mailto:Lovelyday2@kakao.com">Lovelyday2@kakao.com</a></p>
+            <p class="footer-copyright">© 2024 마음우체통. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/supabase-client.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/header.js"></script>
+    <script>
+        let selectedEmoji = '💌';
+        let selectedCategory = 'general';
+
+        // 이모지 선택
+        document.getElementById('emoji-picker').addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji-btn')) {
+                document.querySelectorAll('.emoji-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                selectedEmoji = e.target.dataset.emoji;
+            }
+        });
+
+        // 카테고리 선택
+        document.querySelector('.category-tabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-tab')) {
+                document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+                e.target.classList.add('active');
+                selectedCategory = e.target.dataset.category;
+            }
+        });
+
+        // 글자 수 카운트
+        const contentEl = document.getElementById('content');
+        const charCountEl = document.getElementById('char-count');
+
+        contentEl.addEventListener('input', () => {
+            charCountEl.textContent = contentEl.value.length;
+        });
+
+        // 폼 제출
+        document.getElementById('write-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const content = contentEl.value.trim();
+
+            if (content.length < 1) {
+                showToast('내용을 입력해주세요');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '전송 중...';
+
+            try {
+                const result = await confessionAPI.create({
+                    content,
+                    title: document.getElementById('title').value.trim() || null,
+                    category: selectedCategory,
+                    emoji: selectedEmoji,
+                });
+
+                showToast(result.message);
+
+                setTimeout(() => {
+                    goTo(`/concern/${result.data.id}`);
+                }, 1000);
+            } catch (error) {
+                showToast(error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '우체통에 넣기 📮';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Cloudflare Pages Headers
+
+# HTML 파일 - 캐시 짧게
+/*.html
+  Cache-Control: public, max-age=1800
+
+# CSS/JS - 캐시 1일
+/css/*
+  Cache-Control: public, max-age=86400
+
+/js/*
+  Cache-Control: public, max-age=86400
+
+# 이미지 - 캐시 7일
+/images/*
+  Cache-Control: public, max-age=604800

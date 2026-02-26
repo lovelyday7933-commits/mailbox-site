@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>심심풀이 - 마음우체통</title>
+    <meta name="description" content="재미있는 심리테스트와 미니게임으로 시간을 보내세요!">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="심심풀이 - 마음우체통">
+    <meta property="og:description" content="재미있는 심리테스트와 미니게임으로 시간을 보내세요!">
+    <meta property="og:url" content="https://allnewstartday.com/play">
+    <meta property="og:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+    <meta property="og:site_name" content="마음우체통">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+
+    <!-- 구글 애드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7162051930516598" crossorigin="anonymous"></script>
+    <!-- 네이버 웹마스터 -->
+    <meta name="naver-site-verification" content="4362a3747096e4d72fb71efdf8c0452ebbc8aeca" />
+    <!-- 카카오 애드핏 -->
+    <script async src="https://t1.daumcdn.net/kas/static/ba.min.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <style>
+        .play-hero {
+            text-align: center;
+            padding: var(--space-xl) var(--space-md);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 20px;
+            color: white;
+            margin-bottom: var(--space-xl);
+        }
+
+        .play-hero h1 {
+            font-size: 2rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .play-hero p {
+            opacity: 0.9;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--text-primary);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        @media (min-width: 480px) {
+            .content-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .content-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: var(--space-lg);
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: all var(--duration) var(--ease-out);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .content-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .content-card:active {
+            transform: scale(0.98);
+        }
+
+        .content-card .icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .content-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: var(--space-xs);
+            color: var(--text-primary);
+        }
+
+        .content-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .content-card .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: var(--space-sm);
+        }
+
+        .category-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+        }
+
+        .category-card h3,
+        .category-card p {
+            color: white;
+        }
+
+        .category-card p {
+            opacity: 0.9;
+        }
+
+        /* 랜덤 선택 버튼 */
+        .random-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: var(--space-lg);
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-xl);
+            transition: all var(--duration) var(--ease-out);
+        }
+
+        .random-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(181, 131, 141, 0.3);
+        }
+
+        .random-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 광고 (구글 애드센스) -->
+    <div class="ad-container ad-top">
+        <div class="ad-slot">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7162051930516598" data-ad-slot="AUTO" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 히어로 -->
+        <div class="play-hero">
+            <h1>🎮 심심풀이</h1>
+            <p>재미있는 테스트와 게임으로 시간을 보내세요!</p>
+        </div>
+
+        <!-- 랜덤 콘텐츠 -->
+        <button class="random-btn" onclick="goToRandom()">
+            🎲 랜덤으로 하나 고르기
+        </button>
+
+        <!-- 심리테스트 섹션 -->
+        <h2 class="section-title">🧠 심리테스트</h2>
+        <div class="content-grid" id="tests-grid">
+            <div class="content-card category-card" onclick="goTo('/tests')">
+                <div class="icon">🧠</div>
+                <h3>전체 테스트 보기</h3>
+                <p>27종 이상의 심리테스트</p>
+            </div>
+        </div>
+
+        <!-- 인기 테스트 -->
+        <h2 class="section-title">⭐ 인기 테스트</h2>
+        <div class="content-grid">
+            <div class="content-card" onclick="goTo('/tests?test=mbti-simple')">
+                <div class="icon">🔮</div>
+                <h3>간단 MBTI 테스트</h3>
+                <p>5분만에 알아보는 성격유형</p>
+                <span class="badge">HOT</span>
+            </div>
+            <div class="content-card" onclick="goTo('/tests?test=love-style')">
+                <div class="icon">💕</div>
+                <h3>연애유형 테스트</h3>
+                <p>나의 연애 스타일은?</p>
+            </div>
+            <div class="content-card" onclick="goTo('/tests?test=stress')">
+                <div class="icon">😰</div>
+                <h3>스트레스 지수 테스트</h3>
+                <p>현재 스트레스 레벨 확인</p>
+            </div>
+            <div class="content-card" onclick="goTo('/tests?test=color-mbti')">
+                <div class="icon">🎨</div>
+                <h3>컬러 MBTI</h3>
+                <p>나를 표현하는 색은?</p>
+                <span class="badge">NEW</span>
+            </div>
+        </div>
+
+        <!-- 게임 섹션 -->
+        <h2 class="section-title">🎮 미니게임</h2>
+        <div class="content-grid">
+            <div class="content-card category-card" onclick="goTo('/games')">
+                <div class="icon">🎮</div>
+                <h3>전체 게임 보기</h3>
+                <p>밸런스게임, 월드컵, 미니게임</p>
+            </div>
+        </div>
+
+        <!-- 인기 게임 -->
+        <h2 class="section-title">🔥 인기 게임</h2>
+        <div class="content-grid">
+            <div class="content-card" onclick="goTo('/games?game=balance&category=mz')">
+                <div class="icon">⚖️</div>
+                <h3>MZ 밸런스게임</h3>
+                <p>요즘 세대의 고민들</p>
+                <span class="badge">HOT</span>
+            </div>
+            <div class="content-card" onclick="goTo('/games?game=worldcup&theme=meme')">
+                <div class="icon">🏆</div>
+                <h3>밈/드립 월드컵</h3>
+                <p>최고의 밈을 골라라!</p>
+            </div>
+            <div class="content-card" onclick="goTo('/games?game=typing')">
+                <div class="icon">⌨️</div>
+                <h3>타자 게임</h3>
+                <p>손가락 워밍업!</p>
+            </div>
+            <div class="content-card" onclick="goTo('/games?game=rhythm')">
+                <div class="icon">🎵</div>
+                <h3>리듬 게임</h3>
+                <p>비트에 맞춰 탭!</p>
+            </div>
+        </div>
+
+        <!-- 더보기 -->
+        <div style="text-align: center; padding: var(--space-xl) 0;">
+            <p style="color: var(--text-muted); margin-bottom: var(--space-md);">
+                더 많은 콘텐츠가 계속 추가됩니다!
+            </p>
+            <a href="/" class="btn btn-secondary">
+                📬 고민 보러가기
+            </a>
+        </div>
+    </div>
+
+    <!-- 하단 광고 (카카오 애드핏) -->
+    <div class="ad-container ad-bottom">
+        <div class="ad-slot">
+            <ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-tTbs6kroYj3SnOoV" data-ad-width="320" data-ad-height="50"></ins>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">📮 마음우체통</div>
+            <p class="footer-business">비즈니스 문의: <a href="mailto:Lovelyday2@kakao.com">Lovelyday2@kakao.com</a></p>
+            <p class="footer-copyright">© 2024 마음우체통. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/supabase-client.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/header.js"></script>
+    <script>
+        // 랜덤 콘텐츠로 이동
+        function goToRandom() {
+            const options = [
+                '/tests?test=mbti-simple',
+                '/tests?test=love-style',
+                '/tests?test=stress',
+                '/tests?test=color-mbti',
+                '/tests?test=slow-aging',
+                '/games?game=balance&category=mz',
+                '/games?game=balance&category=money',
+                '/games?game=worldcup&theme=meme',
+                '/games?game=worldcup&theme=kpop',
+                '/games?game=typing',
+                '/games?game=rhythm',
+            ];
+
+            const randomUrl = options[Math.floor(Math.random() * options.length)];
+
+            // 버튼 애니메이션
+            const btn = document.querySelector('.random-btn');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = '';
+                goTo(randomUrl);
+            }, 150);
+        }
+    </script>
+</body>
+</html>

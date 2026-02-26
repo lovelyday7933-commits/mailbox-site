@@ -1,0 +1,14 @@
+# Cloudflare Pages Redirects
+# Clean URL 지원: /write → /write.html (자동)
+
+# 구 URL 호환
+/detail.html /detail 301
+/write.html /write 301
+/reply.html /reply 301
+/my.html /my 301
+/popular.html /popular 301
+/play.html /play 301
+/tests.html /tests 301
+/games.html /games 301
+/admin.html /admin 301
+/index.html / 301

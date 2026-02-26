@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>고민 상세 - 마음우체통</title>
+    <meta name="description" content="익명 고민과 따뜻한 답장들을 확인하세요.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="마음우체통 - 익명 고민">
+    <meta property="og:description" content="익명 고민과 따뜻한 답장들을 확인하세요.">
+    <meta property="og:image" content="https://i.postimg.cc/pXjDWG5z/og-image.jpg">
+    <meta property="og:site_name" content="마음우체통">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📮</text></svg>">
+
+    <!-- 구글 애드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7162051930516598" crossorigin="anonymous"></script>
+    <!-- 네이버 웹마스터 -->
+    <meta name="naver-site-verification" content="4362a3747096e4d72fb71efdf8c0452ebbc8aeca" />
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+</head>
+<body>
+    <!-- 상단 광고 (구글 애드센스) -->
+    <div class="ad-container ad-top">
+        <div class="ad-slot">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7162051930516598" data-ad-slot="AUTO" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 고민 내용 -->
+        <div id="confession-detail">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- 답장 목록 -->
+        <div id="replies-section" style="display: none;">
+            <h3 style="font-size: 1rem; margin: var(--space-lg) 0 var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
+                💬 답장 <span id="reply-count">0</span>개
+            </h3>
+            <div id="replies-list"></div>
+        </div>
+
+        <!-- 답장 작성 (본인 글이 아닐 때만) -->
+        <div id="reply-form-section" style="display: none;">
+            <div class="card" style="margin-top: var(--space-lg);">
+                <h3 style="font-size: 1rem; margin-bottom: var(--space-md);">✍️ 답장 쓰기</h3>
+                <form id="reply-form">
+                    <textarea class="form-textarea" id="reply-content" placeholder="따뜻한 답장을 남겨주세요..." maxlength="1000" style="min-height: 100px;"></textarea>
+                    <div class="char-count"><span id="reply-char-count">0</span>/1000</div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: var(--space-md);">
+                        답장 보내기 📨
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 광고 (카카오 애드핏) -->
+    <div class="ad-container ad-bottom">
+        <div class="ad-slot">
+            <ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-tTbs6kroYj3SnOoV" data-ad-width="320" data-ad-height="50"></ins>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">📮 마음우체통</div>
+            <p class="footer-business">비즈니스 문의: <a href="mailto:Lovelyday2@kakao.com">Lovelyday2@kakao.com</a></p>
+            <p class="footer-copyright">© 2024 마음우체통. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/supabase-client.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/header.js"></script>
+    <script>
+        const confessionId = new URLSearchParams(location.search).get('id')
+            || (location.pathname.startsWith('/concern/') ? location.pathname.split('/concern/')[1] : null);
+        let confessionData = null;
+
+        // 고민 상세 렌더링
+        function renderConfession(confession) {
+            const detailEl = document.getElementById('confession-detail');
+
+            detailEl.innerHTML = `
+                <div class="card" style="animation-delay: 0;">
+                    <div class="confession-header">
+                        <span class="confession-emoji" style="font-size: 2rem;">${confession.emoji || '💌'}</span>
+                        <span class="confession-category ${confession.category}">
+                            ${getCategoryLabel(confession.category)}
+                        </span>
+                        <span class="confession-time">${formatTime(confession.created_at)}</span>
+                    </div>
+
+                    ${confession.title ? `<h2 style="font-size: 1.2rem; margin: var(--space-md) 0;">${confession.title}</h2>` : ''}
+
+                    <div style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap; margin: var(--space-lg) 0;">
+                        ${confession.content}
+                    </div>
+
+                    <div class="confession-footer" style="border-top: 1px solid var(--border); padding-top: var(--space-md); margin-top: var(--space-md);">
+                        <button class="like-btn ${confession.is_liked ? 'liked' : ''}" id="like-btn" onclick="toggleLike()">
+                            ❤️ <span id="like-count">${confession.like_count}</span>
+                        </button>
+                        <span class="confession-stat">💬 ${confession.reply_count}</span>
+                        <span class="confession-stat">👁️ ${confession.view_count}</span>
+                        ${confession.is_mine ? '<span style="margin-left: auto; font-size: 0.8rem; color: var(--accent);">내 고민</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 답장 목록 렌더링
+        function renderReplies(replies) {
+            const repliesSection = document.getElementById('replies-section');
+            const repliesList = document.getElementById('replies-list');
+            document.getElementById('reply-count').textContent = replies.length;
+
+            if (replies.length === 0) {
+                repliesList.innerHTML = `
+                    <div class="empty-state" style="padding: var(--space-lg);">
+                        <div class="empty-icon">💬</div>
+                        <h3>아직 답장이 없어요</h3>
+                        <p>첫 번째 답장을 남겨보세요!</p>
+                    </div>
+                `;
+            } else {
+                repliesList.innerHTML = replies.map((reply, index) => `
+                    <div class="reply-item" style="animation: fadeSlideUp 0.4s ease-out both; animation-delay: ${index * 0.05}s;">
+                        <div class="reply-header">
+                            <span class="reply-number">${reply.is_best ? '⭐ 베스트 답장' : `답장 #${index + 1}`}</span>
+                            <span class="reply-time">${formatTime(reply.created_at)}</span>
+                        </div>
+                        <div class="reply-content">${reply.content}</div>
+                        <div class="reply-actions">
+                            <button class="like-btn" onclick="toggleReplyLike('${reply.id}', this)">
+                                ❤️ ${reply.like_count}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            repliesSection.style.display = 'block';
+        }
+
+        // 공감 토글
+        async function toggleLike() {
+            try {
+                const result = await likeAPI.toggle('confession', confessionId);
+                const btn = document.getElementById('like-btn');
+                const countEl = document.getElementById('like-count');
+
+                if (result.data.liked) {
+                    btn.classList.add('liked');
+                    countEl.textContent = parseInt(countEl.textContent) + 1;
+                } else {
+                    btn.classList.remove('liked');
+                    countEl.textContent = parseInt(countEl.textContent) - 1;
+                }
+            } catch (error) {
+                showToast(error.message);
+            }
+        }
+
+        // 답장 공감 토글
+        async function toggleReplyLike(replyId, btn) {
+            try {
+                const result = await likeAPI.toggle('reply', replyId);
+                const text = btn.textContent.trim();
+                const count = parseInt(text.split(' ')[1]) + (result.data.liked ? 1 : -1);
+                btn.innerHTML = `❤️ ${count}`;
+                btn.classList.toggle('liked', result.data.liked);
+            } catch (error) {
+                showToast(error.message);
+            }
+        }
+
+        // 데이터 로드
+        async function loadConfession() {
+            if (!confessionId) {
+                showToast('잘못된 접근입니다');
+                goTo('/');
+                return;
+            }
+
+            try {
+                const result = await confessionAPI.get(confessionId);
+                confessionData = result.data;
+
+                renderConfession(confessionData);
+                renderReplies(confessionData.replies || []);
+
+                // 본인 글이 아니면 답장 폼 표시
+                if (!confessionData.is_mine) {
+                    document.getElementById('reply-form-section').style.display = 'block';
+                }
+            } catch (error) {
+                showToast(error.message);
+                goTo('/');
+            }
+        }
+
+        // 답장 글자 수 카운트
+        const replyContentEl = document.getElementById('reply-content');
+        const replyCharCountEl = document.getElementById('reply-char-count');
+
+        replyContentEl.addEventListener('input', () => {
+            replyCharCountEl.textContent = replyContentEl.value.length;
+        });
+
+        // 답장 제출
+        document.getElementById('reply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const content = replyContentEl.value.trim();
+
+            if (content.length < 1) {
+                showToast('내용을 입력해주세요');
+                return;
+            }
+
+            try {
+                const result = await replyAPI.create(confessionId, content);
+                showToast(result.message);
+                replyContentEl.value = '';
+                replyCharCountEl.textContent = '0';
+
+                // 답장 목록 새로고침
+                const updated = await confessionAPI.get(confessionId);
+                renderReplies(updated.data.replies || []);
+            } catch (error) {
+                showToast(error.message);
+            }
+        });
+
+        // 초기화
+        loadConfession();
+    </script>
+</body>
+</html>
