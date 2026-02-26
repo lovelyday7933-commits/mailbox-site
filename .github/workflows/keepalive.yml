@@ -1,0 +1,21 @@
+# Supabase 무료 티어 7일 비활성 일시정지 방지
+# 3일마다 DB에 간단한 쿼리를 보내 활성 상태 유지
+name: Supabase Keepalive
+
+on:
+  schedule:
+    # 3일마다 UTC 00:00 (한국시간 09:00)
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/confessions?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          echo " - Supabase ping completed at $(date)"
