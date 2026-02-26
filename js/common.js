@@ -52,10 +52,10 @@ const confessionAPI = {
     // 상세 조회
     async get(id) {
         // 조회수 증가
-        await supabaseClientClient.rpc('increment_view', { p_confession_id: id });
+        await supabaseClient.rpc('increment_view', { p_confession_id: id });
 
         // 고민글 조회
-        const { data: confession, error } = await supabaseClientClient
+        const { data: confession, error } = await supabaseClient
             .from('confessions')
             .select('*')
             .eq('id', id)
@@ -64,7 +64,7 @@ const confessionAPI = {
         if (error) throw new Error('고민을 찾을 수 없어요');
 
         // 답장 조회
-        const { data: replies } = await supabaseClientClient
+        const { data: replies } = await supabaseClient
             .from('replies')
             .select('*')
             .eq('confession_id', id)
@@ -82,7 +82,7 @@ const confessionAPI = {
     async create(data) {
         const confessionId = generateId();
 
-        const { error } = await supabaseClientClient.rpc('create_confession', {
+        const { error } = await supabaseClient.rpc('create_confession', {
             p_id: confessionId,
             p_session_id: SESSION_ID,
             p_content: data.content,
@@ -102,7 +102,7 @@ const confessionAPI = {
 
     // 랜덤 (답장하기용)
     async random() {
-        const { data, error } = await supabaseClientClient.rpc('get_random_confession', {
+        const { data, error } = await supabaseClient.rpc('get_random_confession', {
             p_session_id: SESSION_ID
         });
 
@@ -120,7 +120,7 @@ const replyAPI = {
     async create(confessionId, content) {
         const replyId = generateId();
 
-        const { error } = await supabaseClientClient.rpc('create_reply', {
+        const { error } = await supabaseClient.rpc('create_reply', {
             p_id: replyId,
             p_confession_id: confessionId,
             p_session_id: SESSION_ID,
@@ -146,7 +146,7 @@ const replyAPI = {
 
 const likeAPI = {
     async toggle(type, id) {
-        const { data, error } = await supabaseClientClient.rpc('toggle_like', {
+        const { data, error } = await supabaseClient.rpc('toggle_like', {
             p_session_id: SESSION_ID,
             p_target_type: type,
             p_target_id: id
@@ -237,7 +237,7 @@ const statsAPI = {
 
 async function trackContentUsage(type, id, name) {
     try {
-        await supabaseClientClient.rpc('track_content', {
+        await supabaseClient.rpc('track_content', {
             p_id: generateId(),
             p_type: type,
             p_content_id: id,
