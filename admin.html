@@ -636,7 +636,7 @@
                     return;
                 }
 
-                const { items, meta } = data;
+                const { data: items, meta } = data;
 
                 document.getElementById('confessions-list').innerHTML = (items || []).map(c => `
                     <tr>
