@@ -13,7 +13,7 @@ const confessionAPI = {
         const category = params.category;
         const sort = params.sort || 'latest';
 
-        let query = supabase
+        let query = supabaseClient
             .from('confessions')
             .select('*', { count: 'exact' });
 
@@ -52,10 +52,10 @@ const confessionAPI = {
     // 상세 조회
     async get(id) {
         // 조회수 증가
-        await supabase.rpc('increment_view', { p_confession_id: id });
+        await supabaseClientClient.rpc('increment_view', { p_confession_id: id });
 
         // 고민글 조회
-        const { data: confession, error } = await supabase
+        const { data: confession, error } = await supabaseClientClient
             .from('confessions')
             .select('*')
             .eq('id', id)
@@ -64,7 +64,7 @@ const confessionAPI = {
         if (error) throw new Error('고민을 찾을 수 없어요');
 
         // 답장 조회
-        const { data: replies } = await supabase
+        const { data: replies } = await supabaseClientClient
             .from('replies')
             .select('*')
             .eq('confession_id', id)
@@ -82,7 +82,7 @@ const confessionAPI = {
     async create(data) {
         const confessionId = generateId();
 
-        const { error } = await supabase.rpc('create_confession', {
+        const { error } = await supabaseClientClient.rpc('create_confession', {
             p_id: confessionId,
             p_session_id: SESSION_ID,
             p_content: data.content,
@@ -102,7 +102,7 @@ const confessionAPI = {
 
     // 랜덤 (답장하기용)
     async random() {
-        const { data, error } = await supabase.rpc('get_random_confession', {
+        const { data, error } = await supabaseClientClient.rpc('get_random_confession', {
             p_session_id: SESSION_ID
         });
 
@@ -120,7 +120,7 @@ const replyAPI = {
     async create(confessionId, content) {
         const replyId = generateId();
 
-        const { error } = await supabase.rpc('create_reply', {
+        const { error } = await supabaseClientClient.rpc('create_reply', {
             p_id: replyId,
             p_confession_id: confessionId,
             p_session_id: SESSION_ID,
@@ -146,7 +146,7 @@ const replyAPI = {
 
 const likeAPI = {
     async toggle(type, id) {
-        const { data, error } = await supabase.rpc('toggle_like', {
+        const { data, error } = await supabaseClientClient.rpc('toggle_like', {
             p_session_id: SESSION_ID,
             p_target_type: type,
             p_target_id: id
@@ -162,7 +162,7 @@ const likeAPI = {
 
 const myAPI = {
     async confessions() {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('confessions')
             .select('*')
             .eq('session_id', SESSION_ID)
@@ -181,7 +181,7 @@ const myAPI = {
 
     async replies() {
         // 내 답장 + 원본 고민 내용
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('replies')
             .select('*, confessions!inner(content, emoji)')
             .eq('session_id', SESSION_ID)
@@ -205,15 +205,15 @@ const myAPI = {
 
 const statsAPI = {
     async get() {
-        const { count: totalConfessions } = await supabase
+        const { count: totalConfessions } = await supabaseClient
             .from('confessions')
             .select('*', { count: 'exact', head: true });
 
-        const { count: totalReplies } = await supabase
+        const { count: totalReplies } = await supabaseClient
             .from('replies')
             .select('*', { count: 'exact', head: true });
 
-        const { count: answered } = await supabase
+        const { count: answered } = await supabaseClient
             .from('confessions')
             .select('*', { count: 'exact', head: true })
             .gt('reply_count', 0);
@@ -237,7 +237,7 @@ const statsAPI = {
 
 async function trackContentUsage(type, id, name) {
     try {
-        await supabase.rpc('track_content', {
+        await supabaseClientClient.rpc('track_content', {
             p_id: generateId(),
             p_type: type,
             p_content_id: id,
